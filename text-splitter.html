@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Text Splitter</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --dark-mode-bg: #1a1a1a;
+            --dark-mode-text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .dark-mode {
+            background-color: var(--dark-mode-bg);
+            color: var(--dark-mode-text);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .segment {
+            background: rgba(243, 243, 243, 0.8);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            position: relative;
+            backdrop-filter: blur(5px);
+            box-sizing: border-box;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .segment.dark-mode {
+            background: rgba(40, 40, 40, 0.9);
+        }
+
+        .segment pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            margin: 10px 0;
+            padding: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            max-width: 100%;
+            overflow: auto;
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .char-count {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .copied-persistent {
+            position: relative;
+            border-left: 4px solid #2ecc71 !important;
+            background: #e8f6ee !important;
+            animation: pulse 1s ease-out;
+        }
+
+        .copied-persistent::after {
+            content: "✓ Tersalin";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .dark-mode .copied-persistent {
+            background: #1d3c2d !important;
+            border-left-color: #27ae60 !important;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+            100% { transform: scale(1); }
+        }
+
+        .settings-panel {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .history-item {
+            cursor: pointer;
+            padding: 5px;
+            margin: 3px 0;
+            border-radius: 4px;
+        }
+
+        .history-item:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 480px) {
+            .segment pre {
+                font-size: 0.9em;
+            }
+            
+            .segment-header {
+                gap: 5px;
+            }
+        }
+
+        .segment pre::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .segment pre::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button onclick="toggleDarkMode()">🌙 Mode Gelap</button>
+        <button onclick="showImportDialog()">📂 Impor File</button>
+        <button onclick="exportAsText()">📤 Ekspor Teks</button>
+    </div>
+
+    <h2>Advanced Text Splitter</h2>
+    
+    <div class="settings-panel">
+        <label>Metode Pembagian:
+            <select id="splitMethod">
+                <option value="sentence">Per Kalimat</option>
+                <option value="paragraph">Per Paragraf</option>
+                <option value="word">Per Kata</option>
+                <option value="custom">Regex Kustom</option>
+            </select>
+        </label>
+        
+        <label>Panjang Maksimum:
+            <input type="number" id="maxLength" min="50" max="2000" value="200">
+        </label>
+        
+        <label>Overlap Karakter:
+            <input type="number" id="overlap" min="0" max="100" value="0">
+        </label>
+    </div>
+
+    <textarea id="inputText" placeholder="Masukkan teks di sini..." rows="8"></textarea>
+    
+    <div class="toolbar">
+        <button onclick="processText()">🚀 Proses Teks</button>
+        <button onclick="clearAll()">🗑️ Bersihkan Semua</button>
+    </div>
+
+    <div class="result" id="output"></div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let history = JSON.parse(safeLocalStorageGet('splitHistory') || '[]');
+        let darkMode = safeLocalStorageGet('darkMode') === 'true';
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (darkMode) document.body.classList.add('dark-mode');
+            loadHistory();
+            document.getElementById('inputText').value = safeLocalStorageGet('lastText') || '';
+            loadStoredOutput();
+        });
+
+        function processText() {
+            const text = document.getElementById('inputText').value;
+            const maxLength = parseInt(document.getElementById('maxLength').value) || 200;
+            const overlap = parseInt(document.getElementById('overlap').value) || 0;
+            const method = document.getElementById('splitMethod').value;
+            
+            if (!text.trim()) {
+                showToast('Masukkan teks terlebih dahulu!', 'error');
+                return;
+            }
+
+            let segments;
+            switch(method) {
+                case 'sentence':
+                    segments = splitBySentence(text, maxLength, overlap);
+                    break;
+                case 'paragraph':
+                    segments = splitByParagraph(text, maxLength, overlap);
+                    break;
+                case 'word':
+                    segments = splitByWord(text, maxLength, overlap);
+                    break;
+                case 'custom':
+                    segments = splitByCustomRegex(text, maxLength, overlap);
+                    break;
+            }
+
+            saveToHistory(text, segments);
+            displayResult(segments);
+            safeLocalStorageSet('lastText', text);
+            safeLocalStorageSet('outputSegments', JSON.stringify(segments));
+        }
+
+        function splitBySentence(text, maxLength, overlap) {
+            const sentences = text.match(/[^.!?。！？]+[.!?。！？]+(?:\s|$)/g) || [];
+            return smartSplit(sentences, maxLength, overlap);
+        }
+
+        function splitByParagraph(text, maxLength, overlap) {
+            const paragraphs = text.split(/\n\s*\n/);
+            return smartSplit(paragraphs, maxLength, overlap);
+        }
+
+        function splitByWord(text, maxLength, overlap) {
+            const words = text.split(/\s+/);
+            return smartSplit(words, maxLength, overlap, ' ');
+        }
+
+        function splitByCustomRegex(text, maxLength, overlap) {
+            const customRegex = prompt("Masukkan regex untuk pembagian (contoh: /\\n-\\d+-\\n/):");
+            try {
+                const parts = text.split(eval(customRegex));
+                return smartSplit(parts, maxLength, overlap);
+            } catch {
+                showToast('Regex tidak valid!', 'error');
+                return [];
+            }
+        }
+
+        function smartSplit(parts, maxLength, overlap, separator = '') {
+            let chunks = [];
+            let currentChunk = [];
+            let currentLength = 0;
+
+            for (let part of parts) {
+                const partLength = part.length + separator.length;
+                
+                if (currentLength + partLength > maxLength) {
+                    if (currentChunk.length > 0) {
+                        chunks.push({ content: currentChunk.join(separator), overlap: '' });
+                        if (overlap > 0) {
+                            let overlapText = currentChunk.slice(-overlap).join(separator);
+                            currentChunk = [overlapText];
+                            currentLength = overlapText.length;
+                        } else {
+                            currentChunk = [];
+                            currentLength = 0;
+                        }
+                    }
+                }
+                
+                currentChunk.push(part);
+                currentLength += partLength;
+            }
+
+            if (currentChunk.length > 0) {
+                chunks.push({ content: currentChunk.join(separator), overlap: '' });
+            }
+
+            return chunks;
+        }
+
+        function displayResult(segments) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = segments.map((segment, index) => `
+                <div class="segment ${darkMode ? 'dark-mode' : ''}">
+                    <div class="segment-header">
+                        <div>Segmen #${index + 1}</div>
+                        <div class="char-count">${segment.content.length} karakter</div>
+                    </div>
+                    <pre>${segment.content}</pre>
+                    <button onclick="copyText(${index})">📋 Salin</button>
+                    <button onclick="editSegment(${index})">✏️ Edit</button>
+                </div>
+            `).join('');
+            
+            safeLocalStorageSet('outputSegments', JSON.stringify(segments));
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = type === 'error' ? '#e74c3c' : '#27ae60';
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark-mode');
+            safeLocalStorageSet('darkMode', darkMode);
+            loadStoredOutput();
+        }
+
+        async function copyText(index) {
+            const text = document.querySelectorAll('.segment pre')[index].innerText;
+            try {
+                await navigator.clipboard.writeText(text);
+                document.querySelectorAll('.segment').forEach(s => s.classList.remove('copied-persistent'));
+                document.querySelectorAll('.segment')[index].classList.add('copied-persistent');
+                safeLocalStorageSet('lastCopiedSegment', index);
+                showToast('Tersalin ke clipboard!');
+            } catch {
+                showToast('Gagal menyalin!', 'error');
+            }
+        }
+
+        function saveToHistory(text, segments) {
+            history.unshift({ text, segments, timestamp: new Date().toISOString() });
+            history = history.slice(0, 10);
+            safeLocalStorageSet('splitHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const historyList = document.getElementById('history');
+            if (historyList) {
+                historyList.innerHTML = history.map((entry, i) => `
+                    <div class="history-item" onclick="loadHistoryEntry(${i})">
+                        ${new Date(entry.timestamp).toLocaleString()} - ${entry.segments.length} segmen
+                    </div>
+                `).join('');
+            }
+        }
+
+        function showImportDialog() {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = '.txt';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.onload = ev => document.getElementById('inputText').value = ev.target.result;
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        }
+
+        function exportAsText() {
+            const segments = JSON.parse(safeLocalStorageGet('outputSegments')) || [];
+            const text = segments.map(s => s.content).join('\n\n---\n\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `segmen-${new Date().toISOString()}.txt`;
+            a.click();
+        }
+
+        function loadStoredOutput() {
+            try {
+                const stored = JSON.parse(safeLocalStorageGet('outputSegments')) || [];
+                const lastIdx = safeLocalStorageGet('lastCopiedSegment');
+                if (stored.length) {
+                    displayResult(stored);
+                    if (lastIdx !== null) {
+                        const seg = document.querySelectorAll('.segment')[lastIdx];
+                        if (seg) seg.classList.add('copied-persistent');
+                    }
+                }
+            } catch {
+                safeLocalStorageSet('outputSegments', '');
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data?')) {
+                ['splitHistory','lastText','outputSegments','darkMode','lastCopiedSegment']
+                    .forEach(k => localStorage.removeItem(k));
+                document.getElementById('inputText').value = '';
+                document.getElementById('output').innerHTML = '';
+                loadHistory();
+                location.reload();
+            }
+        }
+
+        function safeLocalStorageGet(key) {
+            try { return localStorage.getItem(key); }
+            catch { return null; }
+        }
+        function safeLocalStorageSet(key, value) {
+            try { localStorage.setItem(key, value); }
+            catch { showToast('Penyimpanan lokal penuh!', 'error'); }
+        }
+    </script>
+</body>
+</html>
