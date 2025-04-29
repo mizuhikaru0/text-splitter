@@ -7,7 +7,7 @@ export function safeGet(key) {
 
 export function safeSet(key, value) {
   try { localStorage.setItem(key, value); }
-  catch { /* bisa tangani kuota penuh */ }
+  catch { /* localStorage penuh */ }
 }
 
 export function loadHistory() {

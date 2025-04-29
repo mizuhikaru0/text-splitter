@@ -11,31 +11,34 @@ export function splitBySentence(text) {
   }
   
   export function splitByCustomRegex(text) {
-    const regex = prompt("Masukkan regex (contoh: /\\n-\\d+-\\n/):");
+    const regex = prompt("Masukkan regex untuk pembagian (misal: /\\n-\\d+-\\n/):");
     try {
       return text.split(eval(regex));
     } catch {
-      throw new Error('Regex tidak valid');
+      throw new Error('Regex tidak valid!');
     }
   }
   
-  export function smartSplit(parts, maxLen, overlap, sep='') {
+  export function smartSplit(parts, maxLen, overlap, separator = '') {
     const chunks = [];
     let curr = [], currLen = 0;
   
-    for (let p of parts) {
-      const L = p.length + sep.length;
+    for (let part of parts) {
+      const L = part.length + (separator ? separator.length : 0);
       if (currLen + L > maxLen && curr.length) {
-        chunks.push(curr.join(sep));
-        curr = overlap>0
-          ? curr.slice(-overlap)
-          : [];
-        currLen = curr.join(sep).length;
+        chunks.push(curr.join(separator));
+        if (overlap > 0) {
+          curr = curr.slice(-overlap);
+          currLen = curr.join(separator).length;
+        } else {
+          curr = [];
+          currLen = 0;
+        }
       }
-      curr.push(p);
+      curr.push(part);
       currLen += L;
     }
-    if (curr.length) chunks.push(curr.join(sep));
+    if (curr.length) chunks.push(curr.join(separator));
     return chunks;
   }
   

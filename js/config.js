@@ -9,14 +9,15 @@ export const SELECTORS = {
     overlap:        '#overlap',
     inputText:      '#inputText',
     output:         '#output',
-    toast:          '#toast'
+    toast:          '#toast',
+    history:        '#history'
   };
   
   export const STORAGE_KEYS = {
-    history: 'splitHistory',
-    lastText: 'lastText',
+    history:        'splitHistory',
+    lastText:       'lastText',
     outputSegments: 'outputSegments',
-    darkMode: 'darkMode',
-    lastCopied: 'lastCopiedSegment'
+    darkMode:       'darkMode',
+    lastCopied:     'lastCopiedSegment'
   };
   

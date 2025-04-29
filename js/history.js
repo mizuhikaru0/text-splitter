@@ -1,16 +1,20 @@
-import { loadHistory, saveHistory } from './storage.js';
-import { displayResult } from './ui.js';
+import { SELECTORS }      from './config.js';
+import { loadHistory }    from './storage.js';
+import { displayResult }  from './ui.js';
 
 export function initHistory(onSelect) {
-  const hist = loadHistory();
-  const container = document.createElement('div');
-  container.id = 'history';
-  hist.forEach((e,i)=>{
+  const hist   = loadHistory();
+  const container = document.querySelector(SELECTORS.history);
+  container.innerHTML = ''; 
+  hist.forEach((e, i) => {
     const item = document.createElement('div');
     item.className = 'history-item';
     item.textContent = `${new Date(e.timestamp).toLocaleString()} — ${e.segments.length} segmen`;
-    item.onclick = ()=> onSelect(e);
+    item.onclick = () => {
+      document.querySelector('#inputText').value = e.text;
+      displayResult(e.segments);
+      onSelect(e);
+    };
     container.appendChild(item);
   });
-  document.body.appendChild(container);
 }

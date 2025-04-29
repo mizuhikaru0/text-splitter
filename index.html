@@ -17,12 +17,12 @@
   
   <div class="settings-panel">
     <label>Metode Pembagian:
-        <select id="splitMethod">
-            <option value="sentence">Per Kalimat</option>
-            <option value="paragraph">Per Paragraf</option>
-            <option value="word">Per Kata</option>
-            <option value="custom">Regex Kustom</option>
-          </select>
+      <select id="splitMethod">
+        <option value="sentence">Per Kalimat</option>
+        <option value="paragraph">Per Paragraf</option>
+        <option value="word">Per Kata</option>
+        <option value="custom">Regex Kustom</option>
+      </select>
     </label>
     <label>Panjang Maksimum:
       <input type="number" id="maxLength" min="50" max="2000" value="200"/>
@@ -32,11 +32,16 @@
     </label>
   </div>
 
-  <textarea id="inputText" placeholder="Masukkan teks..." rows="8"></textarea>
+  <textarea id="inputText" placeholder="Masukkan teks di sini..." rows="8"></textarea>
   
   <div class="toolbar">
     <button id="btnProcess">🚀 Proses Teks</button>
     <button id="btnClear">🗑️ Bersihkan Semua</button>
+  </div>
+
+  <div class="settings-panel">
+    <h3>History</h3>
+    <div id="history"></div>
   </div>
 
   <div class="result" id="output"></div>
