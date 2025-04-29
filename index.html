@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Advanced Text Splitter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="toolbar">
+    <button id="btnToggleDark">🌙 Mode Gelap</button>
+    <button id="btnImport">📂 Impor File</button>
+    <button id="btnExport">📤 Ekspor Teks</button>
+  </div>
+
+  <h2>Advanced Text Splitter</h2>
+  
+  <div class="settings-panel">
+    <label>Metode Pembagian:
+      <select id="splitMethod">…</select>
+    </label>
+    <label>Panjang Maksimum:
+      <input type="number" id="maxLength" min="50" max="2000" value="200"/>
+    </label>
+    <label>Overlap Karakter:
+      <input type="number" id="overlap" min="0" max="100" value="0"/>
+    </label>
+  </div>
+
+  <textarea id="inputText" placeholder="Masukkan teks..." rows="8"></textarea>
+  
+  <div class="toolbar">
+    <button id="btnProcess">🚀 Proses Teks</button>
+    <button id="btnClear">🗑️ Bersihkan Semua</button>
+  </div>
+
+  <div class="result" id="output"></div>
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
