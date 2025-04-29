@@ -17,7 +17,12 @@
   
   <div class="settings-panel">
     <label>Metode Pembagian:
-      <select id="splitMethod">…</select>
+        <select id="splitMethod">
+            <option value="sentence">Per Kalimat</option>
+            <option value="paragraph">Per Paragraf</option>
+            <option value="word">Per Kata</option>
+            <option value="custom">Regex Kustom</option>
+          </select>
     </label>
     <label>Panjang Maksimum:
       <input type="number" id="maxLength" min="50" max="2000" value="200"/>
