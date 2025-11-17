@@ -2,13 +2,13 @@
 export function splitBySentence(text) {
   if (!text) return [];
 
-  // Perbaikan:
-  // - Tetap memecah berdasarkan . ! ? 。 ！ ？
-  // - Namun bagian terakhir tanpa tanda baca juga tetap diambil
+  // Tetap: ambil kalimat yang diakhiri . ! ? 。 ！ ？,
+  // dan juga bagian terakhir meskipun tanpa tanda baca.
   const matches = text.match(/[^.!?。！？]+(?:[.!?。！？]+|\s*$)/g) || [];
 
-  // Trim spasi di pinggir dan buang hasil kosong (kalau ada)
-  return matches.map(s => s.trim()).filter(Boolean);
+  // Penting: JANGAN .trim() supaya newline/indent asli tidak hilang.
+  // Kita hanya buang hasil yang benar-benar kosong (semua whitespace).
+  return matches.filter(s => s.trim().length > 0);
 }
 
 // Memecah teks menjadi paragraf (dipisah baris kosong)
@@ -16,6 +16,7 @@ export function splitByParagraph(text) {
   if (!text) return [];
 
   // Lebih fleksibel untuk \n (Unix) dan \r\n (Windows)
+  // Newline DI DALAM paragraf tetap dipertahankan.
   return text.split(/\r?\n\s*\r?\n/);
 }
 
@@ -23,7 +24,8 @@ export function splitByParagraph(text) {
 export function splitByWord(text) {
   if (!text) return [];
 
-  // Pecah berdasarkan satu atau lebih whitespace, buang string kosong
+  // Pecah berdasarkan satu atau lebih whitespace, buang string kosong.
+  // Di level "kata", memang format newline sudah dianggap separator.
   return text.split(/\s+/).filter(Boolean);
 }
 
@@ -33,7 +35,7 @@ export function splitByCustomRegex(text) {
 
   const pattern = prompt("Masukkan pola regex (tanpa /), misal: \\n-\\d+-\\n");
   if (pattern === null) {
-    // User cancel
+    // User cancel → kembalikan teks apa adanya
     return [text];
   }
 
@@ -67,11 +69,10 @@ export function smartSplit(parts, maxLen, overlap, separator = '') {
     // Paksa part jadi string untuk konsistensi
     part = String(part);
 
-    // Panjang tambahan kalau part ini dimasukkan
+    // Panjang tambahan kalau part ini dimasukkan ke chunk sekarang
     const extra = part.length + (curr.length > 0 && separator ? separator.length : 0);
 
-    // Kalau ditambah part ini melebihi maxLen dan sudah ada isi di curr,
-    // kita "tutup" chunk sekarang dulu.
+    // Kalau lewat batas dan curr sudah ada isinya, tutup chunk dulu
     if (currLen + extra > maxLen && curr.length) {
       chunks.push(curr.join(separator));
 
